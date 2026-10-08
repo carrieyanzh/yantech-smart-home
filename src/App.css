@@ -1,0 +1,138 @@
+.status {
+  margin: 15px 0;
+  font-size: 16px;
+}
+
+.status-dot {
+  margin-right: 8px;
+}
+
+.online {
+  color: green;
+}
+
+.offline {
+  color: red;
+}
+
+.history-card {
+  margin-top: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.history-card h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.temperature-chart {
+  width: 100%;
+  height: 250px;
+  display: block;
+}
+
+.grid-line {
+  stroke: #dddddd;
+  stroke-width: 1;
+}
+
+.temperature-line {
+  stroke: #2196f3;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+/* 3. Base Card Padding Tightening */
+.card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.stats-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-card {
+  flex: 1;
+}
+
+main {
+  display: grid;
+  /* 1. FIX: Adjust columns to wrap around card content instead of stretching to full width */
+  grid-template-columns: minmax(320px, 400px) minmax(450px, 1fr);
+  
+  /* 2. FIX: Bring the columns together by setting a tight horizontal gap */
+  column-gap: 50px; 
+  row-gap: 24px;
+  
+  padding: 24px;
+  align-items: start;
+  
+  /* Centers the entire dashboard container on wide desktop screens */
+  max-width: 1000px; 
+  margin: 0 auto;
+}
+
+/* Ensure the stats card underneath stays perfectly lined up with the Living Room card */
+main > .card:nth-of-type(3) {
+  grid-column: 1;
+  grid-row: 2;
+  width: 100%;
+}
+
+.stats-container {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.stat-card {
+  flex: 1;
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.time-range-container {
+  display: flex;
+  justify-content: center; /* Centers the buttons horizontally */
+  gap: 12px;               /* Adds a 12px space between each button */
+  margin-top: 15px;        /* Spacing between the chart labels and buttons */
+}
