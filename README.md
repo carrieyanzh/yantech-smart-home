@@ -17,4 +17,7 @@ YanTech Smart Home
       ├── 5 min
       ├── 30 min
       ├── 1 hour
-      └── Min / Average / Max# yantech-smart-home
+      └── Min / Average / Max
+
+
+
