@@ -1,138 +1,213 @@
-.status {
-  margin: 15px 0;
-  font-size: 16px;
+header {
+  background: #43699e;
+  color: white;
+  padding: 24px;
+  text-align: center;
 }
 
-.status-dot {
-  margin-right: 8px;
+header h1 {
+  margin: 0;
 }
 
-.online {
-  color: green;
+header p {
+  margin-top: 8px;
 }
 
-.offline {
-  color: red;
+.app {
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Center and constrain the main container */
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card h2, 
+.card h3, 
+.card p,
+.history-card h2 {
+  margin-top: 0 !important;       /* Forces titles to sit directly at the very top */
+  margin-bottom: 12px;           /* Clean, tight spacing below headers */
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;  /* Content anchors to the top */
+  align-items: center;         /* Elements stretch horizontally to the edge */
+  padding: 16px !important;     /* Tightens inner padding borders from 20px+ down to 16px */
+  height: 100%;                 /* Matches row sibling heights evenly */
+  box-sizing: border-box;  
+  background: #f9f9f9;
 }
 
 .history-card {
-  margin-top: 20px;
-  padding: 20px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.history-card h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
 }
 
 .chart-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;                 /* Commands the chart workspace to consume all remaining card space */
   width: 100%;
-  overflow: hidden;
+  justify-content: space-between;
 }
 
-.temperature-chart {
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
   width: 100%;
-  height: 250px;
-  display: block;
+  padding: 14px;
 }
 
-.grid-line {
-  stroke: #dddddd;
-  stroke-width: 1;
+@media (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.temperature-line {
-  stroke: #2196f3;
-  stroke-width: 3;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.chart-labels {
+.stats-container {
   display: flex;
   justify-content: space-between;
-  margin-top: 8px;
-  font-size: 14px;
-  color: #666;
-}
-
-/* 3. Base Card Padding Tightening */
-.card {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  box-sizing: border-box;
-}
-
-.stats-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  text-align: center;
+  gap: 12px;
+  margin-top: auto;
+  margin-bottom: auto; 
 }
 
 .stat-card {
   flex: 1;
-}
-
-main {
-  display: grid;
-  /* 1. FIX: Adjust columns to wrap around card content instead of stretching to full width */
-  grid-template-columns: minmax(320px, 400px) minmax(450px, 1fr);
-  
-  /* 2. FIX: Bring the columns together by setting a tight horizontal gap */
-  column-gap: 50px; 
-  row-gap: 24px;
-  
-  padding: 24px;
-  align-items: start;
-  
-  /* Centers the entire dashboard container on wide desktop screens */
-  max-width: 1000px; 
-  margin: 0 auto;
-}
-
-/* Ensure the stats card underneath stays perfectly lined up with the Living Room card */
-main > .card:nth-of-type(3) {
-  grid-column: 1;
-  grid-row: 2;
-  width: 100%;
-}
-
-.stats-container {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.stat-card {
-  flex: 1;
-  padding: 15px;
-  background: white;
-  border-radius: 10px;
+  padding: 10px !important;     /* Tighter statistics padding blocks */
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card h3 {
   margin: 0 0 10px 0;
   font-size: 16px;
-  color: #666;
+  color: #666666;
 }
 
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
+.error {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
 }
 
+/* Centered error card styling */
+ .error-box {
+  width: 100%;
+  max-width: 600px;
+  background-color: #fee2e2;
+  border: 1px solid #f87171;
+  color: #b91c1c;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.error-box button {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+
+.temperature-chart {
+  width: 100%;
+  height: 100% !important;      /* Overrides hardcoded pixel heights */
+  min-height: 240px;            /* Ensures it stays tall and readable on desktop views */
+  flex-grow: 1;
+}
+
+.temperature-line {
+  stroke: #2196f3 !important; /* Vivid smart-home blue theme color */
+  stroke-width: 3.5px !important; /* Thick, clear vector path footprint */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none !important; /* Critical: prevents the chart from filling black */
+}
+
+.grid-line {
+  stroke: #e0e0e0;
+  stroke-width: 1;
+}
+
+.chart-labels,chart-time-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #651a1a;
+}
 .time-range-container {
   display: flex;
-  justify-content: center; /* Centers the buttons horizontally */
-  gap: 12px;               /* Adds a 12px space between each button */
-  margin-top: 15px;        /* Spacing between the chart labels and buttons */
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.time-range-container button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.time-range-container button.active {
+  background: #2196f3;
+  color: white;
+  border-color: #2196f3;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 12px;
+  text-align: center;
+  width: fit-content;
+}
+
+.status-badge.online {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.status-badge.offline {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+.status-badge.unknown {
+  background-color: #f5f5f5;
+  color: #616161;
+  border: 1px solid #e0e0e0;
 }

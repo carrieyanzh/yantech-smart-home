@@ -2,43 +2,39 @@ import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import TemperatureHistoryChart from "./TemperatureHistoryChart.jsx";
 
-const API_URL = "http://192.168.1.122:8000";
+
 
 function App() {
   const [reading, setReading] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
   const [timeRange, setTimeRange] = useState(30);
+  const [error, setError] = useState("");
+  const [deviceStatus, setDeviceStatus] = useState("Checking...");
+  const [deviceClass, setDeviceClass] = useState("status-badge unknown");
+  const [lastUpdated, setLastUpdated] = useState("Waiting for device status");
 
-  const intervalRef = useRef(null);
+  const threeHours = 10800000;
+  const API_URL = "http://192.168.1.122:8000";
 
-  // Get latest temperature
+  const isRecent = reading && Date.now() - new Date(reading.timestamp).getTime() < 10000;
+  const temperatures = history.map((item) => item.temperature);
+  const minTemperature = temperatures.length > 0 ? Math.min(...temperatures) : null;
+  const maxTemperature = temperatures.length > 0 ? Math.max(...temperatures) : null;
+  const averageTemperature = temperatures.length > 0 ? temperatures.reduce((sum, t) => sum + t, 0) / temperatures.length : null;
+
   const fetchLatestReading = async () => {
     try {
       setError("");
-
       const response = await fetch(`${API_URL}/readings/latest`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
       const data = await response.json();
-
       setReading((currentReading) => {
-        if (
-          currentReading &&
-          currentReading.temperature === data.temperature &&
-          currentReading.timestamp === data.timestamp
-        ) {
+        if (currentReading && currentReading.temperature === data.temperature && currentReading.timestamp === data.timestamp) {
           return currentReading;
         }
-
         return data;
       });
-
       setLoading(false);
     } catch (err) {
       console.error("API error:", err);
@@ -47,127 +43,55 @@ function App() {
     }
   };
 
-  // Get temperature history
-  const fetchHistory1 = async () => {
-    try {
-      const response = await fetch(`${API_URL}/readings/history?limit=50`);
-
-      if (!response.ok) {
-        throw new Error(`History HTTP error: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      setHistory(data);
-    } catch (err) {
-      console.error("History API error:", err);
-    }
-  };
-
   const fetchHistory = async () => {
     try {
-      const response = await fetch(        
-        `${API_URL}/readings/history?minutes=${timeRange}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch history");
-      }
-
+      const response = await fetch(`${API_URL}/readings/history?minutes=${timeRange}`);
+      if (!response.ok) throw new Error("Failed to fetch history");
       const data = await response.json();
-
-      const now = Date.now();
-
-      const filteredData = data.filter((item) => {
-        const readingTime = new Date(item.timestamp).getTime();
-        const ageMinutes = (now - readingTime) / 1000 / 60;
-
-        return ageMinutes <= timeRange;
-      });
-
-      //setHistory(filteredData);
-       setHistory(Array.isArray(data) ? data : []);
+      setHistory(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
     }
   };
+  
+  const updateDeviceStatus = async () => {
+    try {
+      const response = await fetch(`${API_URL}/devices/status`);
+      if (!response.ok) throw new Error("Failed to fetch device status");
+      const devices = await response.json();
+      const device = devices.find((item) => item.device_id === "esp32-livingroom");
 
+      if (!device) {
+        setDeviceStatus("Unknown");
+        setDeviceClass("status-badge unknown");
+        setLastUpdated("No device status found");
+        return;
+      }
+
+      const isOnline = device.status.toLowerCase() === "online";
+      setDeviceStatus(isOnline ? "Online" : "Offline");
+      setDeviceClass(isOnline ? "status-badge online" : "status-badge offline");
+      setLastUpdated("Last status update: " + device.timestamp);
+    } catch (error) {
+      setDeviceClass("status-badge unknown");
+      setLastUpdated("Unable to contact API");
+      console.error("Device status error:", error);
+    }
+  };
+  
   useEffect(() => {
     fetchLatestReading();
     fetchHistory();
+    updateDeviceStatus();
 
     const interval = setInterval(() => {
       fetchLatestReading();
       fetchHistory();
-    }, 2000);
-
-    /*  intervalRef.current = setInterval(() => {
-      fetchLatestReading();
-      fetchHistory();
-    }, 2000); */
-
-    /*  return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    }; */
+      updateDeviceStatus();
+    }, threeHours);
 
     return () => clearInterval(interval);
   }, [timeRange]);
-
-  // Check whether latest data is recent
-  const isRecent =
-    reading && Date.now() - new Date(reading.timestamp).getTime() < 10000;
-
-  const chartData = [...history].reverse();
-
-  const temperatures = history.map((item) => item.temperature);
-  const minTemperature =
-    temperatures.length > 0 ? Math.min(...temperatures) : null;
-  const maxTemperature =
-    temperatures.length > 0 ? Math.max(...temperatures) : null;
-
-  const averageTemperature =
-    temperatures.length > 0
-      ? temperatures.reduce((sum, temperature) => sum + temperature, 0) /
-        temperatures.length
-      : null;
-
-  // SVG chart dimensions
-  const chartWidth = 700;
-  const chartHeight = 250;
-
-  let minTemp = 29;
-  let maxTemp = 31;
-
-  if (chartData.length > 0) {
-    const temperatures = chartData.map((item) => item.temperature);
-
-    minTemp = Math.floor(Math.min(...temperatures) * 10) / 10;
-    maxTemp = Math.ceil(Math.max(...temperatures) * 10) / 10;
-
-    // Give chart a little vertical space
-    if (minTemp === maxTemp) {
-      minTemp -= 0.5;
-      maxTemp += 0.5;
-    } else {
-      minTemp -= 0.1;
-      maxTemp += 0.1;
-    }
-  }
-
-  const points = chartData.map((item, index) => {
-    const x =
-      chartData.length === 1
-        ? chartWidth / 2
-        : (index / (chartData.length - 1)) * chartWidth;
-
-    const y =
-      chartHeight -
-      ((item.temperature - minTemp) / (maxTemp - minTemp)) * chartHeight;
-
-    return `${x},${y}`;
-  });
 
   return (
     <div className="app">
@@ -178,82 +102,62 @@ function App() {
 
       <main>
         {loading && !reading && <p>Loading...</p>}
-
         {error && (
-          <div className="error">
+          <div className="error-box">
             <h2>Connection Error</h2>
             <p>{error}</p>
-
             <button onClick={fetchLatestReading}>Try Again</button>
           </div>
         )}
-        <div className="card">
-          <h2>Living Room</h2>
-          {/* Data Status */}
-          <div className="status">
-            <span
-              className={isRecent ? "status-dot online" : "status-dot offline"}
-            >
-              ●
-            </span>
 
-            <strong>{isRecent ? "Data Online" : "Data Stale"}</strong>
+        <div className="dashboard-grid">
+          <div className="card">
+            <h2>Living Room</h2>
+            <div className="status">
+              <span className={isRecent ? "status-badge online" : "status-badge offline"}> ● </span>
+              <strong>{isRecent ? "Data Online" : "Data Stale"}</strong>
+            </div>
+            {reading && (
+              <div>
+                <h3>🌡️ {reading.temperature}°{reading.unit || "C"}</h3>
+                <p>Device: {reading.device_id}</p>
+                <p>Reading ID: {reading.id}</p>
+                <p><strong>Timestamp:</strong> {new Date(reading?.timestamp).toLocaleString()}</p>
+                <button onClick={fetchLatestReading}>Refresh</button>
+              </div>
+            )}
           </div>
-          {reading && (
-            <div>
-              <h3>
-                🌡️ {reading.temperature}°{reading.unit || "C"}
-              </h3>
-              <p>Device: {reading.device_id}</p>
-              <p>Reading ID: {reading.id}</p>
-              <p>
-                <strong>Timestamp:</strong>{" "}
-                {new Date(reading?.timestamp).toLocaleString()}
-              </p>
-              <button onClick={fetchLatestReading}>Refresh</button>
-            </div>
-          )}
-        </div>
-
-        {/* Right Side: Chart Panel */}
-        {/* 3. CRITICAL: Pass your state variable 'history' to the component prop */}
-        <div className="card">
-          <TemperatureHistoryChart
-            history={history}
-            timeRange={timeRange}
-            setTimeRange={setTimeRange}
-          />
-        </div>
-
-        <div className="card">
-          {/* Temperature Statistics */}
-          <div className="stats-container">
-            <div className="stat-card">
-              <h3>Minimum</h3>
-              <div className="stat-value">
-                {minTemperature !== null
-                  ? `${minTemperature.toFixed(1)}°C`
-                  : "--"}
+          <div className="card">
+            <h2>Temperature History</h2>
+            <TemperatureHistoryChart history={history} timeRange={timeRange} setTimeRange={setTimeRange} />
+          </div>
+          <div className="card">
+            <div className="stats-container">
+              <div className="stat-card">
+                <h3>Minimum</h3>
+                <div className="stat-value">{minTemperature !== null ? `${minTemperature.toFixed(1)}°C` : "--"}</div>
+              </div>
+              <div className="stat-card">
+                <h3>Average</h3>
+                <div className="stat-value">{averageTemperature !== null ? `${averageTemperature.toFixed(1)}°C` : "--"}</div>
+              </div>
+              <div className="stat-card">
+                <h3>Maximum</h3>
+                <div className="stat-value">{maxTemperature !== null ? `${maxTemperature.toFixed(1)}°C` : "--"}</div>
               </div>
             </div>
-
-            <div className="stat-card">
-              <h3>Average</h3>
-              <div className="stat-value">
-                {averageTemperature !== null
-                  ? `${averageTemperature.toFixed(1)}°C`
-                  : "--"}
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <h3>Maximum</h3>
-              <div className="stat-value">
-                {maxTemperature !== null
-                  ? `${maxTemperature.toFixed(1)}°C`
-                  : "--"}
-              </div>
-            </div>
+          </div>
+          <div className="card">
+             <h3>Data Points</h3>
+             <div className="stat-value">{history.length}</div>
+          </div>
+                    
+          <div className="card">
+              <h3>Living Room Device</h3>
+              <span className={deviceClass}>
+                {deviceStatus}
+              </span>
+              <p className="status-updated">{lastUpdated}</p>
           </div>
         </div>
       </main>
