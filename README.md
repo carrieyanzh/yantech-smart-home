@@ -4,7 +4,7 @@
 
 # React + Vite
 
-
+```text
 YanTech Smart Home
 │
 ├── ESP32-C3 + DS18B20
@@ -26,7 +26,7 @@ YanTech Smart Home
       ├── 1 hour
       └── Min / Average / Max
 
-
+```text
 
 pi@raspberrypi:~/yantech-smart-home $ sqlite3 nodered/data/yantech.db ".tables"
 device_status         readings              temperature_readings
