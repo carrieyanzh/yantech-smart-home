@@ -1,6 +1,8 @@
 ## YanTech Smart Home IoT Dashboard 
 modern cloud-hybrid architecture 
 
+https://yantech-smart-home.vercel.app/
+
 ![Dashboard Screenshot](pic1.png)
 
 # React + Vite
