@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import TemperatureHistoryChart from "./TemperatureHistoryChart.jsx";
 
-
-
 function App() {
   const [reading, setReading] = useState(null);
   const [history, setHistory] = useState([]);
@@ -14,14 +12,25 @@ function App() {
   const [deviceClass, setDeviceClass] = useState("status-badge unknown");
   const [lastUpdated, setLastUpdated] = useState("Waiting for device status");
 
-  const threeHours = 10800000;
-  const API_URL = "http://192.168.1.122:8000";
+  const [aiInsight, setAiInsight] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
-  const isRecent = reading && Date.now() - new Date(reading.timestamp).getTime() < 10000;
+  const threeHours = 10800000;
+  //const API_URL = "http://192.168.1.122:8000";
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+  const isRecent =
+    reading && Date.now() - new Date(reading.timestamp).getTime() < 10000;
   const temperatures = history.map((item) => item.temperature);
-  const minTemperature = temperatures.length > 0 ? Math.min(...temperatures) : null;
-  const maxTemperature = temperatures.length > 0 ? Math.max(...temperatures) : null;
-  const averageTemperature = temperatures.length > 0 ? temperatures.reduce((sum, t) => sum + t, 0) / temperatures.length : null;
+  const minTemperature =
+    temperatures.length > 0 ? Math.min(...temperatures) : null;
+  const maxTemperature =
+    temperatures.length > 0 ? Math.max(...temperatures) : null;
+  const averageTemperature =
+    temperatures.length > 0
+      ? temperatures.reduce((sum, t) => sum + t, 0) / temperatures.length
+      : null;
 
   const fetchLatestReading = async () => {
     try {
@@ -29,8 +38,14 @@ function App() {
       const response = await fetch(`${API_URL}/readings/latest`);
       if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
       const data = await response.json();
+      console.log("Latest Reading API response:", data);
+
       setReading((currentReading) => {
-        if (currentReading && currentReading.temperature === data.temperature && currentReading.timestamp === data.timestamp) {
+        if (
+          currentReading &&
+          currentReading.temperature === data.temperature &&
+          currentReading.timestamp === data.timestamp
+        ) {
           return currentReading;
         }
         return data;
@@ -45,21 +60,31 @@ function App() {
 
   const fetchHistory = async () => {
     try {
-      const response = await fetch(`${API_URL}/readings/history?minutes=${timeRange}`);
+      const response = await fetch(
+        `${API_URL}/readings/history?minutes=${timeRange}`,
+      );
       if (!response.ok) throw new Error("Failed to fetch history");
       const data = await response.json();
+
+      console.log("History API response:", data);
+
       setHistory(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
     }
   };
-  
+
   const updateDeviceStatus = async () => {
     try {
       const response = await fetch(`${API_URL}/devices/status`);
       if (!response.ok) throw new Error("Failed to fetch device status");
       const devices = await response.json();
-      const device = devices.find((item) => item.device_id === "esp32-livingroom");
+
+      console.log("Device Status API response:", devices);
+
+      const device = devices.find(
+        (item) => item.device_id === "esp32-livingroom",
+      );
 
       if (!device) {
         setDeviceStatus("Unknown");
@@ -78,7 +103,7 @@ function App() {
       console.error("Device status error:", error);
     }
   };
-  
+
   useEffect(() => {
     fetchLatestReading();
     fetchHistory();
@@ -92,6 +117,31 @@ function App() {
 
     return () => clearInterval(interval);
   }, [timeRange]);
+
+  const fetchAiInsight = async () => {
+    try {
+      setAiLoading(true);
+      setAiError("");
+      setAiInsight(""); // Clear previous text
+
+      const response = await fetch(`${API_URL}/api/v1/smart-climate`);
+      if (!response.ok) throw new Error(`AI Engine error: ${response.status}`);
+
+      const data = await response.json();
+      console.log("Ollama Response:", data);
+
+      if (data.status === "success") {
+        setAiInsight(data.ai_home_insight);
+      } else {
+        throw new Error("AI engine failed to compute a response.");
+      }
+    } catch (err) {
+      console.error("AI Communication Error:", err);
+      setAiError(err.message);
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   return (
     <div className="app">
@@ -114,50 +164,101 @@ function App() {
           <div className="card">
             <h2>Living Room</h2>
             <div className="status">
-              <span className={isRecent ? "status-badge online" : "status-badge offline"}> ● </span>
+              <span
+                className={
+                  isRecent ? "status-badge online" : "status-badge offline"
+                }
+              >
+                {" "}
+                ●{" "}
+              </span>
               <strong>{isRecent ? "Data Online" : "Data Stale"}</strong>
             </div>
             {reading && (
               <div>
-                <h3>🌡️ {reading.temperature}°{reading.unit || "C"}</h3>
+                <h3>
+                  🌡️ {reading.temperature}°{reading.unit || "C"}
+                </h3>
                 <p>Device: {reading.device_id}</p>
                 <p>Reading ID: {reading.id}</p>
-                <p><strong>Timestamp:</strong> {new Date(reading?.timestamp).toLocaleString()}</p>
+                <p>
+                  <strong>Timestamp:</strong>{" "}
+                  {new Date(reading?.timestamp).toLocaleString()}
+                </p>
                 <button onClick={fetchLatestReading}>Refresh</button>
               </div>
             )}
           </div>
           <div className="card">
             <h2>Temperature History</h2>
-            <TemperatureHistoryChart history={history} timeRange={timeRange} setTimeRange={setTimeRange} />
+            <TemperatureHistoryChart
+              history={history}
+              timeRange={timeRange}
+              setTimeRange={setTimeRange}
+            />
           </div>
           <div className="card">
             <div className="stats-container">
               <div className="stat-card">
                 <h3>Minimum</h3>
-                <div className="stat-value">{minTemperature !== null ? `${minTemperature.toFixed(1)}°C` : "--"}</div>
+                <div className="stat-value">
+                  {minTemperature !== null
+                    ? `${minTemperature.toFixed(1)}°C`
+                    : "--"}
+                </div>
               </div>
               <div className="stat-card">
                 <h3>Average</h3>
-                <div className="stat-value">{averageTemperature !== null ? `${averageTemperature.toFixed(1)}°C` : "--"}</div>
+                <div className="stat-value">
+                  {averageTemperature !== null
+                    ? `${averageTemperature.toFixed(1)}°C`
+                    : "--"}
+                </div>
               </div>
               <div className="stat-card">
                 <h3>Maximum</h3>
-                <div className="stat-value">{maxTemperature !== null ? `${maxTemperature.toFixed(1)}°C` : "--"}</div>
+                <div className="stat-value">
+                  {maxTemperature !== null
+                    ? `${maxTemperature.toFixed(1)}°C`
+                    : "--"}
+                </div>
               </div>
             </div>
           </div>
           <div className="card">
-             <h3>Data Points</h3>
-             <div className="stat-value">{history.length}</div>
+            <h3>Data Points</h3>
+            <div className="stat-value">{history.length}</div>
           </div>
-                    
+
           <div className="card">
-              <h3>Living Room Device</h3>
-              <span className={deviceClass}>
-                {deviceStatus}
-              </span>
-              <p className="status-updated">{lastUpdated}</p>
+            <h3>Living Room Device</h3>
+            <span className={deviceClass}>{deviceStatus}</span>
+            <p className="status-updated">{lastUpdated}</p>
+          </div>
+          <div className="card">
+            <h2>🤖 YanTech AI Assistant</h2>
+            <p className="subtitle">Ollama 3.2 Home Climate Insight</p>
+
+            <div className="ai-content-box">
+              {aiLoading && (
+                <p className="ai-loading">🔄 Consulting AI manager...</p>
+              )}
+              {aiError && <p className="ai-error-text">❌ {aiError}</p>}
+              {aiInsight && <p className="ai-insight-text">{aiInsight}</p>}
+              {!aiLoading && !aiInsight && !aiError && (
+                <p className="ai-placeholder">
+                  Click analyze to review climate comfort.
+                </p>
+              )}
+            </div>
+
+            <button
+              className="ai-btn"
+              onClick={fetchAiInsight}
+              disabled={aiLoading}
+            >
+              {aiLoading ? "Analyzing..." : "Analyze Climate"}
+            </button>
           </div>
         </div>
       </main>

@@ -5,6 +5,31 @@
 # React + Vite
 
 ```text
+Simplified Local-First Architecture
+┌───────────────────────── LOCAL LAN HOME NETWORK ─────────────────────────┐  ┌────── FREE CLOUD TIER ──────┐
+│                                                                          │  │                             │
+│ ┌─────────┐        ┌──────────┐        ┌──────────────┐                  │  │    ┌──────────────────┐     │
+│ │  ESP32  │ ───►   │ Local    │ ───►   │ Raspberry Pi │                  │  │    │  Vercel / Netlify│     │
+│ │ Sensors │  MQTT  │ Broker   │        │ (Node-RED)   │                  │  │    │ (React Frontend) │     │
+│ └─────────┘        └──────────┘        └──────┬───────┘                  │  │    └────────┬─────────┘     │
+│                                               │                          │  │             │               │
+│                                               ▼                          │  │             │               │
+│                                      ┌────────────────┐                  │  │             │ Serves UI     │
+│  ┌────────────────┐                  │  Local SQLite  │                  │  │             │ (In Browser)  │
+│  │ Windows PC     │ ◄──────────────► │    Database    │                  │  │             │               │
+│  │ (Ollama AI)    │    API Queries   └────────────────┘                  │  │             ▼               │
+│  └────────▲───────┘                           ▲                          │  │     ┌───────────────┐       │
+│           │                                   │                          │  └────►│  Web Browser  │───────┘
+│           └─────────── FastAPI ───────────────┴──────────────────────────┼────────│ (Runs React)  │
+│                    (Runs on Windows/Pi)                                  │        └───────────────┘
+│                                                                          │          Connects via LAN
+└──────────────────────────────────────────────────────────────────────────┘          (192.168.x.x)
+
+```
+
+
+
+```text
 YanTech Smart Home
 │
 ├── ESP32-C3 + DS18B20
@@ -26,7 +51,14 @@ YanTech Smart Home
       ├── 1 hour
       └── Min / Average / Max
 
-```text
+```
+
+at raspberry 
+
+(venv) pi@raspberrypi:~/yantech-smart-home/fastapi $ python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+
+
 
 pi@raspberrypi:~/yantech-smart-home $ sqlite3 nodered/data/yantech.db ".tables"
 device_status         readings              temperature_readings

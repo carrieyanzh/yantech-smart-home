@@ -1,5 +1,3 @@
-import React from "react";
-
 function TemperatureHistoryChart({ history, timeRange, setTimeRange }) {  
   const totalWidth = 500;
   const totalHeight = 240;

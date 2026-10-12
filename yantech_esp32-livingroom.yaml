@@ -1,0 +1,47 @@
+esphome:
+  name: esp32-livingroom
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+logger:
+
+wifi:
+  ssid: "ASUS-MyHome"
+  password: "19621117Carie"
+  
+  manual_ip:
+    static_ip: 192.168.1.169   # Uses the temporary IP your router gave it earlier
+    gateway: 192.168.1.1       # Your main router IP
+    subnet: 255.255.255.0
+
+mqtt:
+  broker: 192.168.1.122
+  port: 1883
+  topic_prefix: yantech/esp32-livingroom
+  username: "yantech"
+  password: "yantech123"
+  
+  birth_message:
+    topic: yantech/esp32-livingroom/status
+    payload: online
+    retain: true
+
+  will_message:
+    topic: yantech/esp32-livingroom/status
+    payload: offline
+    retain: true
+
+one_wire:
+  - platform: gpio
+    pin: GPIO2
+
+sensor:
+  - platform: dallas_temp
+    name: "Living Room Temperature"
+    update_interval: 10s
+
+ota:
+  - platform: esphome
