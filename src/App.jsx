@@ -18,7 +18,8 @@ function App() {
 
   const threeHours = 10800000;
   //const API_URL = "http://192.168.1.122:8000";
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  //const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const API_URL = "http://192.168.1.122:8000";
 
   const isRecent =
     reading && Date.now() - new Date(reading.timestamp).getTime() < 10000;
