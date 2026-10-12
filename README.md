@@ -3,6 +3,10 @@ modern cloud-hybrid architecture
 
 https://yantech-smart-home.vercel.app/
 https://app.turso.tech/carrieyanzh/databases/yantech-smart-home/data
+C:\2512Mycodes\ngrok-v3-stable-windows-amd64>
+ngrok http 11434
+ngrok config add-authtoken "3KafLxeb9ZE2q37xMbznG9UQTBI_7igB4oSZbfHRxMsjavecr"
+ngrok http 11434 
 
 ![Dashboard Screenshot](pic1.png)
 
