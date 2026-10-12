@@ -2,6 +2,7 @@
 modern cloud-hybrid architecture 
 
 https://yantech-smart-home.vercel.app/
+https://app.turso.tech/carrieyanzh/databases/yantech-smart-home/data
 
 ![Dashboard Screenshot](pic1.png)
 
